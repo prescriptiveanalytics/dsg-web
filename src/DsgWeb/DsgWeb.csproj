@@ -7,12 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="DataStreamGenerator" Version="1.0.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.6"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\..\janzenisek\dsg\src\DataStreamGenerator\DataStreamGenerator.csproj" />
     </ItemGroup>
 
 </Project>
