@@ -12,12 +12,17 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryUrl>https://github.com/prescriptiveanalytics/dsg-web.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <OpenApiDocumentsDirectory>$(BaseIntermediateOutputPath)</OpenApiDocumentsDirectory>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="DataStreamGenerator" Version="1.0.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.6"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14"/>
+        <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.14">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
 </Project>

@@ -1,8 +1,6 @@
-using System.Text.Json;
 using DSG.DataStreamGenerator;
 using DSG.DataStreamGenerator.Configuration;
 using DsgWeb.Models;
-using DsgWeb.Utils;
 using JetBrains.Annotations;
 
 namespace DsgWeb.Services;
@@ -43,7 +41,7 @@ public sealed class DataStreamService(ILogger<DataStreamService> logger)
     public UpdateConfigResult UpdateConfiguration(DsgConfigurationRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var series = ParseSeries(request);
+        var series = request.Series ?? [];
         Validate(request.Generator, series);
         request.Generator.EnsureInitialized();
 
@@ -178,20 +176,6 @@ public sealed class DataStreamService(ILogger<DataStreamService> logger)
             logger.LogInformation("Stop requested for data stream");
             error = null;
             return true;
-        }
-    }
-
-    private static List<SeriesConfig> ParseSeries(DsgConfigurationRequest request)
-    {
-        if (request.Series is null || request.Series.Count == 0)
-            throw new ArgumentException("Field 'series' must contain at least one series configuration.");
-        try
-        {
-            return request.Series.Select(SeriesConfigParser.Parse).ToList();
-        }
-        catch (JsonException ex)
-        {
-            throw new ArgumentException(ex.Message);
         }
     }
 

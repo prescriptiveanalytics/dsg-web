@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="src/DsgWeb/DsgWeb.csproj" />
+  <Project Path="src/DsgWeb.Client/DsgWeb.Client.csproj" />
   <Project Path="tests/DsgWeb.Tests/DsgWeb.Tests.csproj" />
 </Solution>
