@@ -3,6 +3,25 @@
 REST API around the [DataStreamGenerator](https://github.com/janzenisek/dsg) library.
 The API starts/stops a generated MQTT data stream and accepts the stream configuration as JSON.
 
+## Docker image
+
+Run the latest release:
+
+```bash
+docker pull ghcr.io/prescriptiveanalytics/dsg-web:latest
+docker run -d -p 8080:8080 ghcr.io/prescriptiveanalytics/dsg-web:latest
+```
+
+### Tags
+
+| Tag      | Points to                          |
+| -------- | ---------------------------------- |
+| `dev`    | The latest commit on `main`.       |
+| `latest` | The latest release.                |
+| `0.1.0`  | Release `0.1.0`.                   |
+| `0.1`    | The latest patch release of `0.1`. |
+| `0`      | The latest release of `0`.         |
+
 ## Run with Docker Compose
 
 ```bash

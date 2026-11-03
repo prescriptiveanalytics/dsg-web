@@ -1,0 +1,103 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+
+# Run builds one after another so an older commit can never overwrite `dev` or `latest` of a newer one.
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test DsgWeb.slnx --configuration Release
+
+      - name: Determine version
+        id: version
+        uses: dotnet/nbgv@v0.5.2
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # A build is a release when the version from version.json has not been published yet,
+      # i.e. major, minor or patch were changed since the last published image.
+      # It is also a release when the version was published from this very commit, so a re-run
+      # after a partially failed push still pushes all release tags.
+      - name: Check for release
+        id: release
+        env:
+          VERSION: ${{ steps.version.outputs.SimpleVersion }}
+          COMMIT_TAG: ${{ steps.version.outputs.SimpleVersion }}-${{ steps.version.outputs.GitCommitIdShort }}
+        run: |
+          digest() {
+            docker buildx imagetools inspect "$IMAGE:$1" --format '{{.Manifest.Digest}}' 2> /dev/null
+          }
+          version_digest=$(digest "$VERSION" || true)
+          if [ -z "$version_digest" ]; then
+            echo "Version $VERSION is new, publishing a release."
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          elif [ "$version_digest" = "$(digest "$COMMIT_TAG" || true)" ]; then
+            echo "Version $VERSION was published from this commit, publishing the release again."
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version $VERSION is already published."
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          flavor: latest=false
+          tags: |
+            type=raw,value=dev
+            type=raw,value=${{ steps.version.outputs.SimpleVersion }}-${{ steps.version.outputs.GitCommitIdShort }}
+            type=raw,value=latest,enable=${{ steps.release.outputs.is_release }}
+            type=raw,value=${{ steps.version.outputs.SimpleVersion }},enable=${{ steps.release.outputs.is_release }}
+            type=raw,value=${{ steps.version.outputs.MajorMinorVersion }},enable=${{ steps.release.outputs.is_release }}
+            type=raw,value=${{ steps.version.outputs.VersionMajor }},enable=${{ steps.release.outputs.is_release }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.version.outputs.SimpleVersion }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

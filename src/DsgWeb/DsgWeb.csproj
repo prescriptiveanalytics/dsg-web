@@ -4,6 +4,14 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <WarningsAsErrors>nullable</WarningsAsErrors>
+        <Authors>Pascal Pomper</Authors>
+        <Title>DsgWeb</Title>
+        <Copyright>Copyright (c) Heuristic and Evolutionary Algorithms Laboratory (HEAL) 2026.</Copyright>
+        <PackageProjectUrl>https://github.com/prescriptiveanalytics/dsg-web</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/prescriptiveanalytics/dsg-web.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>
