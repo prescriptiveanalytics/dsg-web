@@ -1,0 +1,21 @@
+# Version control / IDE
+.git
+.gitignore
+.idea/
+.run/
+*.user
+
+# Build output
+**/bin/
+**/obj/
+
+# Test project (not part of the runtime image)
+tests/
+
+# Container / repository metadata
+compose.yml
+Dockerfile
+.dockerignore
+README.md
+LICENSE
+DsgWeb.slnx
