@@ -1,5 +1,11 @@
 # DSG Web
 
+[![Docker](https://github.com/prescriptiveanalytics/dsg-web/actions/workflows/docker.yml/badge.svg?branch=main)](https://github.com/prescriptiveanalytics/dsg-web/actions/workflows/docker.yml)
+[![GHCR](https://img.shields.io/badge/ghcr.io-dsg--web-2496ED?logo=docker&logoColor=white)](https://github.com/prescriptiveanalytics/dsg-web/pkgs/container/dsg-web)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![Last commit](https://img.shields.io/github/last-commit/prescriptiveanalytics/dsg-web/main)](https://github.com/prescriptiveanalytics/dsg-web/commits/main)
+[![License](https://img.shields.io/github/license/prescriptiveanalytics/dsg-web)](LICENSE)
+
 REST API around the [DataStreamGenerator](https://github.com/janzenisek/dsg) library.
 The API starts/stops a generated MQTT data stream and accepts the stream configuration as JSON.
 
