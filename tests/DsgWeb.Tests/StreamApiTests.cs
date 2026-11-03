@@ -63,6 +63,23 @@ public class StreamApiTests(MosquittoFixture broker) : IDisposable
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
+    [Theory]
+    [InlineData("""{"seriesType":"ME","id":"s1","arguments":["i"],"expression":"i"}""", HttpStatusCode.OK)]
+    [InlineData("""{"id":"s1","arguments":["i"],"expression":"i","seriesType":"ME"}""", HttpStatusCode.OK)]
+    [InlineData("""{"id":"s1","arguments":["i"],"expression":"i"}""", HttpStatusCode.BadRequest)]
+    [InlineData("""{"SeriesType":"ME","id":"s1","arguments":["i"],"expression":"i"}""", HttpStatusCode.BadRequest)]
+    [InlineData("""{"seriesType":"me","id":"s1","arguments":["i"],"expression":"i"}""", HttpStatusCode.BadRequest)]
+    [InlineData("""{"seriesType":"XX","id":"s1","arguments":["i"],"expression":"i"}""", HttpStatusCode.BadRequest)]
+    public async Task PostConfig_SeriesDiscriminator(string series, HttpStatusCode expected)
+    {
+        using var client = _factory.CreateClient();
+
+        var body = $$"""{"generator":{"id":"test-plant","environment":"DEVELOPMENT","type":"stream1"},"series":[{{series}}]}""";
+        var response = await client.PostAsync("/api/stream/config", new StringContent(body, Encoding.UTF8, "application/json"));
+
+        response.StatusCode.ShouldBe(expected);
+    }
+
     [Fact]
     public async Task Stream_StartPublishesMqttMessages_AndStopStopsThem()
     {
