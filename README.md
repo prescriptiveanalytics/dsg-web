@@ -1,6 +1,7 @@
 # DSG Web
 
-[![Docker](https://github.com/prescriptiveanalytics/dsg-web/actions/workflows/docker.yml/badge.svg?branch=main)](https://github.com/prescriptiveanalytics/dsg-web/actions/workflows/docker.yml)
+[![Release](https://github.com/prescriptiveanalytics/dsg-web/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/prescriptiveanalytics/dsg-web/actions/workflows/release.yml)
+[![NuGet](https://img.shields.io/nuget/v/DsgWeb.Client?logo=nuget)](https://www.nuget.org/packages/DsgWeb.Client)
 [![GHCR](https://img.shields.io/badge/ghcr.io-dsg--web-2496ED?logo=docker&logoColor=white)](https://github.com/prescriptiveanalytics/dsg-web/pkgs/container/dsg-web)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Last commit](https://img.shields.io/github/last-commit/prescriptiveanalytics/dsg-web/main)](https://github.com/prescriptiveanalytics/dsg-web/commits/main)

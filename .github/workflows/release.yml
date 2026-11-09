@@ -1,4 +1,4 @@
-name: Docker
+name: Release
 
 on:
   push:
@@ -6,14 +6,60 @@ on:
 
 # Run builds one after another so an older commit can never overwrite `dev` or `latest` of a newer one.
 concurrency:
-  group: docker-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}
+  PACKAGE_ID: DsgWeb.Client
 
 jobs:
-  build:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.SimpleVersion }}
+      nuget_release: ${{ steps.nuget.outputs.is_release }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test DsgWeb.slnx --configuration Release
+
+      - name: Determine version
+        id: version
+        uses: dotnet/nbgv@v0.5.2
+
+      # Checked here rather than in the nuget job, so the `nuget` environment (and its approval)
+      # is only requested when there is something to publish.
+      - name: Check for NuGet release
+        id: nuget
+        env:
+          VERSION: ${{ steps.version.outputs.SimpleVersion }}
+        run: |
+          id=$(echo "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
+          # The index lists all versions of the package, or returns 404 if it was never published.
+          versions=$(curl -fsS "https://api.nuget.org/v3-flatcontainer/$id/index.json" || true)
+          if grep -qF "\"$VERSION\"" <<< "$versions"; then
+            echo "$PACKAGE_ID $VERSION is already published."
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$PACKAGE_ID $VERSION is new, publishing a release."
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  docker:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -29,9 +75,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
-
-      - name: Test
-        run: dotnet test DsgWeb.slnx --configuration Release
 
       - name: Determine version
         id: version
@@ -101,3 +144,41 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  nuget:
+    needs: test
+    if: needs.test.outputs.nuget_release == 'true'
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      contents: read
+      # Trusted publishing: exchange the GitHub OIDC token for a short-lived nuget.org API key.
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Pack
+        run: dotnet pack src/DsgWeb.Client/DsgWeb.Client.csproj --configuration Release --output artifacts
+
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      # Also pushes the matching .snupkg symbols package. --skip-duplicate makes re-runs safe.
+      - name: Push
+        run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
